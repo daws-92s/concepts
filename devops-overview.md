@@ -5,7 +5,7 @@ Software gets built in stages — plan it, design it, build it, test it, ship it
 
 The short version: DevOps exists because slow, risky releases lose to fast, reliable ones.
 
-## How it works (concept-level, plain language)
+## How it works
 
 **Stakeholders** — anyone affected by the system, not just "the client." In a company that could mean: your team, management, developers, testers, operations, security, and end users. Good planning accounts for all of them, not just the people writing code.
 
@@ -39,7 +39,7 @@ Each stage catches different problems before they reach actual customers.
 - Operational concerns: high availability, auto-scaling, security, and cost control
 - Automated build-and-release, instead of manually pushing code out
 
-## Problems I hit + how I solved them
+## Common problems and how to solve them
 Waterfall's main problem: all testing happens at the very end, against the whole system, so defects show up late and are costly to fix.
 
 The fix isn't a new tool — it's a process change:
