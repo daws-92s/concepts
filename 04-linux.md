@@ -47,4 +47,4 @@ choosing a community distro saves license cost but means no vendor support line 
 - Linux dominates servers and infrastructure, not desktops — know which one you're talking about before quoting a market-share number.
 - Mac bundles hardware and OS together; a standard PC lets you choose your OS — this is a deliberate trade-off between simplicity/control (Apple) and flexibility (PC).
 
-See also: [[why-cloud-migration]]
+See also: [[02-why-cloud-migration]]
