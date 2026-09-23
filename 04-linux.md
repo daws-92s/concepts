@@ -76,4 +76,4 @@ A common firewall mistake is leaving a Security Group rule wide open (`0.0.0.0/0
 - A Security Group is a stateful, per-server firewall — allow a port in, and the response traffic is automatically allowed back out. Default to the narrowest CIDR scope that works, not `0.0.0.0/0`.
 - SSH key auth works because the private key never leaves your machine — the server only ever sees (and trusts) the public key. `ssh-keygen -f <name>` generates the pair; only `.pub` ever gets shared.
 
-See also: [02-why-cloud-migration.md](02-why-cloud-migration.md)
+See also: [02-why-cloud-migration.md](02-why-cloud-migration.md), [05-linux-commands.md](05-linux-commands.md)

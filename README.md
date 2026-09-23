@@ -6,3 +6,4 @@
 | [02-why-cloud-migration.md](02-why-cloud-migration.md) | On-premise vs cloud trade-offs, what regions and AZs actually are, and practical AWS account setup notes. |
 | [03-what-is-a-computer.md](03-what-is-a-computer.md) | The core definition of a computer (CPU+RAM+Storage+OS) and why laptops, servers, phones, and TVs all fit it. |
 | [04-linux.md](04-linux.md) | OS structure, Linux's real history, distros, Windows vs Linux, plus securing and accessing a Linux server: firewalls/Security Groups and SSH key auth. |
+| [05-linux-commands.md](05-linux-commands.md) | Quick-reference for everyday Linux commands: paths, file CRUD, grep/cut/awk filtering, archiving, and vim basics. |
