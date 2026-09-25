@@ -113,10 +113,39 @@ Linux is case-sensitive throughout — `Devops` and `devops` are two different n
 
 ## Editors
 
-- `vim` ("visually improved" editor) has three modes:
-  - **Insert mode** — actually typing/editing text
-  - **Command mode** — the default mode, for moving around and issuing editor commands
-  - **Esc** — takes you back to command mode from insert mode; from command mode, typing `:` opens the colon/command-line mode for saving, quitting, etc.
+`vim` ("visually improved" editor) has three modes:
+- **Insert mode** — actually typing/editing text. Press `i` from command mode to enter it.
+- **Command mode** — the default mode, for moving around and issuing single-key editor commands.
+- **Esc** — takes you back to command mode from insert mode; from command mode, typing `:` opens colon mode for saving, quitting, search-and-replace, and more.
+
+**Command mode (press Esc first):**
+- `gg` — jump to the top of the file
+- `Shift+g` — jump to the bottom of the file
+- `u` — undo
+- `Ctrl+r` — redo
+- `yy` — copy (yank) the current line
+- `p` — paste
+- `10p` — paste the copied line 10 times
+
+**Colon mode (type `:` from command mode):**
+- `:wq` — write (save) and quit
+- `:q` — quit
+- `:q!` — force quit without saving
+- `:set nu` / `:set nonu` — show / hide line numbers
+- `:<line-number>` — jump the cursor to that line
+- `/<word>` — search forward for a word
+- `?<word>` — search backward for a word
+- `:noh` — clear search highlighting
+- `:2d` — delete line 2
+- `:5,10d` — delete lines 5 through 10
+- `:%d` — delete the entire file's contents
+- `:3s/old/new` — on line 3, replace the first occurrence of `old` with `new`
+- `:3s/old/new/g` — on line 3, replace all occurrences
+- `:%s/old/new` — replace the first occurrence on every line
+- `:%s/old/new/g` — replace every occurrence on every line
+  ```
+  :%s/sbin/SBIN/g
+  ```
 
 ## Common problems and how to solve them
 The most common early mistake is using `>` when you meant `>>` — `>` silently overwrites a file's entire contents, so redirecting output to an existing file by accident can wipe out data you needed. Default to `>>` unless you specifically want to replace the file.
@@ -129,5 +158,6 @@ Another common trip-up: assuming a relative path will work the same from any loc
 - `grep`, `cut`, and `awk` are the core text-filtering toolkit — `grep` finds lines, `cut`/`awk` pull specific fields out of them, and piping (`|`) lets you chain them together.
 - UID 0–999 = system accounts, 1000+ = human-created accounts — this is how `awk -F ":" '$3 > 999 {print $1}' /etc/passwd` finds real user accounts.
 - Linux is case-sensitive everywhere — filenames, commands, arguments.
+- vim has three modes — insert (typing), command (navigation/editing shortcuts), and colon (save/quit/search-and-replace). `Esc` always gets you back to command mode first.
 
-See also: [04-linux.md](04-linux.md)
+See also: [04-linux.md](04-linux.md), [06-linux-admin.md](06-linux-admin.md)
