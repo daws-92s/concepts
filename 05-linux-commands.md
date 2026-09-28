@@ -124,6 +124,7 @@ Linux is case-sensitive throughout — `Devops` and `devops` are two different n
 - `u` — undo
 - `Ctrl+r` — redo
 - `yy` — copy (yank) the current line
+- `dd` — cut (delete) the current line — also usable for pasting elsewhere with `p`
 - `p` — paste
 - `10p` — paste the copied line 10 times
 
