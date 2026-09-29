@@ -95,6 +95,19 @@ Day-to-day work at this tier includes installing and upgrading the database, bac
 - **2-tier** — two servers: a client (frontend + business logic combined) talks directly to a separate database server.
 - **3-tier** — three servers, one per tier: Frontend → Backend → Database. Each tier is now independent, which is what makes the "why separate tiers" reasons below possible in the first place.
 
+## Hands-On Practice Setup
+
+For a lab where you build a 3-tier deployment yourself (e.g. an Expense Tracker app across three EC2 instances), a ready-made practice AMI has the tools preinstalled so you're not stuck on environment setup instead of the architecture itself:
+
+| Item | Value |
+|---|---|
+| AMI name | Redhat-9-DevOps-Practice |
+| AMI ID | `ami-0220d79f3f480ecf5` |
+| Default OS login | `ec2-user` / `DevOps321` |
+| Default DB login | `root` / `ExpenseApp@1` |
+
+These are default credentials baked into a public training AMI, not production secrets — change them (or don't reuse the AMI) for anything beyond a throwaway practice environment.
+
 ## Why Separate Tiers?
 
 | Reason | Explanation |
