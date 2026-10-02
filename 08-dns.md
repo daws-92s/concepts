@@ -34,6 +34,27 @@ Above every TLD sit the **root servers** — 13 well-known root server addresses
 
 The registrar earns a commission for handling the sale and paperwork on behalf of the registry — registries don't sell directly to the public.
 
+## DNS Record Types
+A domain can hold several kinds of DNS records, each pointing to a different kind of destination:
+
+| Record | Points to | Example use |
+|---|---|---|
+| **A** | An IPv4 address | `daws92s.online → <frontend-public-ip>` — the most common record, points a domain straight at a server |
+| **AAAA** | An IPv6 address | Same idea as A, for IPv6 |
+| **CNAME** | Another domain name (an alias) | `www.daws92s.online → daws92s.online` |
+| **NS** | The nameservers responsible for the domain | Points to whichever provider is actually managing the records — the registrar's own nameservers, or a different one like AWS Route 53, Cloudflare, etc. |
+| **MX** | A mail server | Routes email sent to the domain to the right mail provider |
+| **TXT** | Arbitrary text | Domain ownership verification, SPF/DKIM records for email |
+
+## Pointing a Domain at AWS (Route 53)
+Buying a domain from a registrar doesn't mean that registrar has to manage its DNS records — they can be delegated elsewhere. A common setup for a domain whose server lives on AWS:
+1. Create a **hosted zone** for the domain in AWS Route 53 — AWS hands back a set of its own nameservers for that domain.
+2. Go back to the registrar and update the domain's **NS record** to point at those AWS nameservers instead of the registrar's default ones.
+3. Once that change propagates, Route 53 becomes authoritative for the domain — any record created there is what the world actually sees when it looks up the domain.
+4. Add an **A record** in Route 53 pointing the domain at the server's public IP.
+
+From then on, `http://daws92s.online` resolves straight to the server — nobody needs to remember or share the IP, and if the server's IP ever changes, only that one A record needs updating rather than every place the IP was shared.
+
 ## Common problems and how to solve them
 A common misconception is that the registrar "owns" your DNS — it doesn't. The registrar just manages which nameservers the registry has on file for your domain. You can register a domain at one registrar and point its nameservers at a completely different provider (Cloudflare, AWS Route 53, etc.) to actually manage the DNS records.
 
@@ -45,5 +66,7 @@ Another common confusion: thinking a domain name *is* the server. It isn't — i
 - Registry vs registrar: the registry (e.g. Verisign for `.com`) is the authoritative record-keeper for a TLD; the registrar (e.g. GoDaddy) is who you actually buy from — a retailer, not the record-keeper.
 - ICANN oversees the whole system but is an independent nonprofit, not a government body, despite having originated under U.S. government oversight decades ago.
 - Buying a domain doesn't give you a server — it gives you a name you can point at one, and that pointer is exactly what DNS records control.
+- Different record types do different jobs: **A** points a domain at an IP, **CNAME** aliases one domain to another, **NS** says who manages the records, **MX** routes email.
+- A domain's DNS doesn't have to stay with the registrar it was bought from — updating its NS record lets another provider (e.g. AWS Route 53) take over managing its records entirely.
 
 See also: [07-3-tier.md](07-3-tier.md)

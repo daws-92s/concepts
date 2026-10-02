@@ -208,6 +208,37 @@ An access log line breaks down like this:
 ```
 client IP → timestamp → request line (method + path) → status code → response size → user agent.
 
+## Nginx as a Load Balancer (on its own server)
+So far Nginx has been doing two jobs on the same box: serving the frontend's static files and reverse-proxying API calls to the backend. Nginx can also run as a **dedicated load balancer**, on its own server, sitting in front of multiple identical servers instead of just one:
+
+```
+Internet
+     │
+     ▼
+┌───────────────────────┐
+│  Load Balancer EC2     │  ← Nginx, only balancing — no app code here
+└───────────────────────┘
+     │              │
+     ▼              ▼
+Frontend-1 EC2   Frontend-2 EC2   ← identical servers, same app
+```
+
+This uses Nginx's `upstream` block — a named group of servers to spread requests across:
+```nginx
+upstream app_servers {
+    server <frontend-1-private-ip>:80;
+    server <frontend-2-private-ip>:80;
+}
+
+server {
+    listen 80;
+    location / {
+        proxy_pass http://app_servers;
+    }
+}
+```
+By default Nginx distributes requests round-robin — one server, then the next, in turn. This is what actually makes "add more servers behind a load balancer" (mentioned under Scalability above) work in practice: the load balancer is the thing deciding which server handles each incoming request, so any one of them can go down or get replaced without the user ever noticing.
+
 ## Forward Proxy vs Reverse Proxy
 Both act "on behalf of" someone, but on opposite sides of the request:
 
