@@ -168,6 +168,22 @@ This answers the three questions any service needs answered: **who** runs it (`U
 
 `systemctl start backend` then: looks up `backend.service` in `/etc/systemd/system`, runs the `ExecStart` command as the specified `User`, and injects the declared environment variables.
 
+**After editing an existing service file**, systemd won't pick up the change on its own — reload its config, then restart:
+```
+systemctl daemon-reload
+systemctl restart backend
+```
+Skipping `daemon-reload` is a common mistake: the service restarts, but still runs with the *old* config, which looks like the edit "didn't work."
+
+Confirming the backend is actually healthy uses the same service → port → process → logs checklist from [06-linux-admin.md](06-linux-admin.md), applied here:
+```
+systemctl status backend          # service running?
+netstat -lntp                     # port 8080 listening?
+ps -ef | grep backend             # process alive?
+curl http://localhost:8080/health # app responding?
+journalctl -u backend             # what do the logs say?
+```
+
 ## Public vs Private IP
 IPv4 has about 4 billion addresses (2³²). A **public IP** is reachable from the internet; a **private IP** (like `172.31.0.54`) only works inside its own network (e.g. a VPC). The backend and database only need private IPs — nothing outside the VPC should be able to reach them directly; only the frontend needs a public IP, since it's the only tier the internet is allowed to talk to.
 
@@ -223,16 +239,28 @@ location /health {
 ```
 
 ## REST API & HTTP Methods
-An **API** (Application Programming Interface) is how the frontend and backend talk to each other. A REST API maps CRUD operations onto HTTP methods, all against the same URL:
+An **API** (Application Programming Interface) is how the frontend and backend talk to each other. A REST API maps CRUD operations onto HTTP methods, with the resource name as part of the URL:
 
 | Operation | HTTP Method | Example |
 |---|---|---|
-| Read | `GET` | `GET /api/transaction` — list transactions |
-| Create | `POST` | `POST /api/transaction` with a JSON body — add a transaction |
-| Update | `PUT` | `PUT /api/transaction` with a JSON body (including the `id`) — update a transaction |
-| Delete | `DELETE` | `DELETE /api/transaction/32` — delete transaction 32 |
+| Read (all) | `GET` | `GET /transaction` — list every transaction |
+| Read (one) | `GET` | `GET /transaction/2` — get transaction `2` |
+| Create | `POST` | `POST /transaction` with a JSON body — add a transaction |
+| Update | `PUT` | `PUT /transaction` with a JSON body (including the `id`) — update a transaction |
+| Delete (one) | `DELETE` | `DELETE /transaction/4` — delete transaction `4` |
+| Delete (all) | `DELETE` | `DELETE /transaction/` — delete every transaction |
 
-A typical response is JSON — structured, key-value data that's easy for both humans and code to read:
+Notice the URL is the backend's own path (e.g. `http://<backend-private-ip>:8080/transaction`) — but from the browser's side, it's called through the frontend's reverse proxy as `http://<frontend-public-ip>/api/transaction`. This is the `location /api/` → `proxy_pass` rule from earlier doing its job: the browser never needs to know the backend's private IP or port at all.
+
+Example request/response pair — creating a transaction:
+```
+POST http://<frontend-public-ip>/api/transaction
+{ "amount": 100, "category": "Food", "description": "dosa" }
+
+→ 201 Created
+```
+
+A typical `GET` response is JSON — structured, key-value data that's easy for both humans and code to read:
 ```json
 {
   "result": [
@@ -242,6 +270,8 @@ A typical response is JSON — structured, key-value data that's easy for both h
 }
 ```
 
+You don't need a browser UI to test any of this — tools like `curl` or a dedicated API client let you send these requests directly and inspect the raw response and status code.
+
 ## HTTP Status Codes
 Computers work in numbers; status codes are how a server tells the client what happened without needing a full sentence:
 
@@ -249,11 +279,11 @@ Computers work in numbers; status codes are how a server tells the client what h
 |---|---|---|
 | 1XX | Informational | — |
 | 2XX | Success | `200` OK, `201` Created, `204` No Content (e.g. after a delete) |
-| 3XX | Redirection | — |
-| 4XX | Client-side error | `400` Bad Request, `401` wrong/missing credentials, `403` Forbidden (no authorization), `404` Not Found |
-| 5XX | Server-side error | `500` Internal Server Error, `501` Not Implemented, `502` Bad Gateway (frontend can't reach backend), `503` Service Unavailable, `504` Gateway Timeout (backend didn't respond in time) |
+| 3XX | Redirection | `301` Moved Permanently (the browser auto-redirects to the new location in the response), `304` Not Modified (nothing changed — reuse your cached response) |
+| 4XX | Client-side error | `400` Bad Request (malformed input), `401` missing/invalid credentials, `403` Forbidden (authenticated, but not permitted), `404` Not Found, `405` Method Not Allowed (e.g. calling `DELETE` on a URL that only supports `GET`) |
+| 5XX | Server-side error | `500` Internal Server Error, `501` Not Implemented, `502` Bad Gateway (frontend can't reach backend), `503` Service Unavailable (e.g. the database is down), `504` Gateway Timeout (backend didn't respond in time) |
 
-`502` and `504` are worth knowing well in a 3-tier setup specifically — they usually mean the problem isn't Nginx itself, it's that the backend tier behind it is down or too slow.
+`401` vs `403` is a common mix-up: `401` means the server doesn't know who you are (no credentials, or invalid ones); `403` means it does know who you are, it's just not letting you do this. `502` and `504` are worth knowing well in a 3-tier setup specifically — they usually mean the problem isn't Nginx itself, it's that the backend tier behind it is down or too slow.
 
 ## Why Separate Tiers?
 
@@ -265,4 +295,4 @@ Computers work in numbers; status codes are how a server tells the client what h
 | **Fault isolation** | A crashed backend doesn't take the database down with it |
 | **Technology freedom** | Swap the frontend server or the database engine without rewriting the other tiers |
 
-See also: [06-linux-admin.md](06-linux-admin.md)
+See also: [06-linux-admin.md](06-linux-admin.md), [08-dns.md](08-dns.md)
