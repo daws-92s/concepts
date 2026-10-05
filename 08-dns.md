@@ -20,6 +20,12 @@ joindevops   .   com
 - Each TLD has one **registry** — the organization that actually manages that TLD's database. `.com` and `.net` are run by Verisign; `.in` is run by NIXI (India's national internet registry); `.ai` is run by the government of Anguilla, since `.ai` is technically Anguilla's country-code TLD.
 - A **registrar** (GoDaddy, Namecheap, Hostinger, Cloudflare, AWS, etc.) is who you actually buy a domain *from* — think of them as retailers/resellers, while the registry is more like the wholesaler/record-keeper for that TLD.
 
+**The actual lookup path a browser takes**, in order — each step only runs if the one before it didn't already know the answer:
+```
+Browser cache → OS → OS cache → DNS resolver → Root servers → TLD registry → Nameservers → A record
+```
+Most lookups never reach the root servers at all — they're answered from a cache (the browser's, the OS's, or the resolver's) long before that, which is the whole point of caching: skip the full trip when a recent answer is already on hand.
+
 **Root servers and ICANN:**
 Above every TLD sit the **root servers** — 13 well-known root server addresses (served from many physical locations worldwide, not 13 single machines) that know which organization manages which TLD. If a DNS lookup can't find an answer anywhere else, it eventually asks a root server "who manages `.com`?" and gets pointed to the right registry.
 
@@ -45,6 +51,19 @@ A domain can hold several kinds of DNS records, each pointing to a different kin
 | **NS** | The nameservers responsible for the domain | Points to whichever provider is actually managing the records — the registrar's own nameservers, or a different one like AWS Route 53, Cloudflare, etc. |
 | **MX** | A mail server | Routes email sent to the domain to the right mail provider |
 | **TXT** | Arbitrary text | Domain ownership verification, SPF/DKIM records for email |
+| **SOA** | Start of Authority — metadata about the domain's zone | Which nameserver is the primary source of truth, plus settings like TTL defaults |
+
+## TTL (Time to Live)
+Every DNS record has a **TTL** — how long a resolver is allowed to treat a cached answer as still valid before it has to ask again. It's a direct trade-off:
+
+| | High TTL (e.g. 1 day) | Low TTL (e.g. 1 minute) |
+|---|---|---|
+| Lookup speed | Faster — most requests hit a cache, few reach the real nameservers | Slower — more requests have to re-check with the nameservers |
+| Change propagation | Slow — an IP change can take up to the full TTL to reach everyone | Fast — a change is visible almost everywhere within the TTL |
+
+This matters most when you're about to change a record — e.g. moving a domain from an on-premise server's IP to a new cloud IP. The common pattern: lower the TTL (e.g. to 1 minute) a day or two *before* the change, let that propagate, make the IP change (which now spreads fast since the TTL is already low), confirm everything's working, then raise the TTL back to its normal value.
+
+Skipping that step causes exactly the kind of problem TTL is meant to prevent: a visitor whose resolver cached the old record under yesterday's long TTL keeps getting routed to the old IP until that TTL finally expires — even though the record was "already changed."
 
 ## Pointing a Domain at AWS (Route 53)
 Buying a domain from a registrar doesn't mean that registrar has to manage its DNS records — they can be delegated elsewhere. A common setup for a domain whose server lives on AWS:
@@ -68,5 +87,6 @@ Another common confusion: thinking a domain name *is* the server. It isn't — i
 - Buying a domain doesn't give you a server — it gives you a name you can point at one, and that pointer is exactly what DNS records control.
 - Different record types do different jobs: **A** points a domain at an IP, **CNAME** aliases one domain to another, **NS** says who manages the records, **MX** routes email.
 - A domain's DNS doesn't have to stay with the registrar it was bought from — updating its NS record lets another provider (e.g. AWS Route 53) take over managing its records entirely.
+- TTL controls the trade-off between lookup speed and how fast a change propagates — lower it before a planned IP change, then raise it back once the change has settled.
 
 See also: [07-3-tier.md](07-3-tier.md)
