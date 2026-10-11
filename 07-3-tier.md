@@ -326,4 +326,4 @@ Computers work in numbers; status codes are how a server tells the client what h
 | **Fault isolation** | A crashed backend doesn't take the database down with it |
 | **Technology freedom** | Swap the frontend server or the database engine without rewriting the other tiers |
 
-See also: [06-linux-admin.md](06-linux-admin.md), [08-dns.md](08-dns.md)
+See also: [06-linux-admin.md](06-linux-admin.md), [08-dns.md](08-dns.md), [10-backend.md](10-backend.md), [11-nginx.md](11-nginx.md)

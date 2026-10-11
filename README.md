@@ -11,3 +11,6 @@
 | [07-3-tier.md](07-3-tier.md) | 3-tier architecture via the restaurant analogy, plus deploying it for real: system users, build tools, systemd services, Nginx as web server/reverse proxy/load balancer, REST APIs, and HTTP status codes. |
 | [08-dns.md](08-dns.md) | How domain names resolve to IPs: root servers, TLD registries vs registrars, ICANN, DNS record types (A/CNAME/NS/MX/TXT/SOA), TTL, and pointing a domain at AWS Route 53. |
 | [09-databases.md](09-databases.md) | SQL vs NoSQL (tables/rows vs collections/documents), using both in one app, Redis caching with TTL/invalidation, and message queues (sync vs async, point-to-point vs pub/sub). |
+| [10-backend.md](10-backend.md) | The language-agnostic backend deployment steps, plus a full comparison of Node.js, Java, Python, and Go: extensions, build tools/files, dependency storage, and compiled vs interpreted. |
+| [11-nginx.md](11-nginx.md) | Nginx as a reverse proxy in front of several backend services: path-based routing, request tracing, security headers, JSON error pages, health checks, and static asset caching. |
+| [12-disk-management.md](12-disk-management.md) | Inodes, symlinks vs hard links, attaching/mounting an extra disk, `/etc/fstab`, disk/RAM usage commands, and the full Linux directory layout. |
