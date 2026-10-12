@@ -14,3 +14,4 @@
 | [10-backend.md](10-backend.md) | The language-agnostic backend deployment steps, plus a full comparison of Node.js, Java, Python, and Go: extensions, build tools/files, dependency storage, and compiled vs interpreted. |
 | [11-nginx.md](11-nginx.md) | Nginx as a reverse proxy in front of several backend services: path-based routing, request tracing, security headers, JSON error pages, health checks, and static asset caching. |
 | [12-disk-management.md](12-disk-management.md) | Inodes, symlinks vs hard links, attaching/mounting an extra disk, `/etc/fstab`, disk/RAM usage commands, and the full Linux directory layout. |
+| [13-shell-scripting.md](13-shell-scripting.md) | Why manual deployment and plain scripts fall short, Git/version control basics, the shebang line, and shell variables (arguments, command substitution, DRY). |
