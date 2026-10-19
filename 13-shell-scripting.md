@@ -1,7 +1,7 @@
 # Shell Scripting and Version Control Basics
 
 ## What this is / why it matters
-Doing deployments and server changes by hand (typing commands one at a time, every time) doesn't scale and doesn't stay safe for long. Shell scripting turns a sequence of manual steps into a single, repeatable program. Version control (Git) is what makes it safe to change those scripts over time — tracking who changed what, keeping old versions recoverable, and letting more than one person work on the same code. Beyond the basics of writing and running a script, the shell also hands you built-in variables for free, remembers some variables across a whole login session, has no real data types at all, and lets a script branch based on a condition — and every command it runs leaves behind a status telling you whether it actually worked.
+Doing deployments and server changes by hand (typing commands one at a time, every time) doesn't scale and doesn't stay safe for long. Shell scripting turns a sequence of manual steps into a single, repeatable program. Version control (Git) is what makes it safe to change those scripts over time — tracking who changed what, keeping old versions recoverable, and letting more than one person work on the same code. Beyond the basics of writing and running a script, the shell also hands you built-in variables for free, remembers some variables across a whole login session, has no real data types at all, lets a script branch based on a condition, repeat work with a loop, bundle repeated code into a function, and send its output wherever you want with redirection — and every command it runs leaves behind a status telling you whether it actually worked.
 
 ## How it works
 
@@ -223,6 +223,76 @@ check exit status ($?)
 ```
 The actual `if`/`elif`/`else` bash syntax comes next — this stage is about getting the logic right first.
 
+### Functions
+A function groups repeated code into one reusable block, meant to do a single task. It takes input and can hand back output, the same way a script takes arguments:
+
+```bash
+greet_user(){
+  name=$1
+  role=$2
+  echo "Hello $name, your role is $role"
+}
+
+greet_user "Siva" "Trainer"
+```
+
+Inside the function, `$1`, `$2`, and so on refer to whatever it was called with — scoped to that call, separate from any arguments the overall script was run with.
+
+The reason to bother: fewer lines with more clarity is better than more lines with less clarity. Pulling repeated code into a function keeps a script shorter and keeps each piece of logic in one place to find and fix — the same DRY reasoning behind using variables in the first place.
+
+### Loops
+A loop repeats a block of code without writing it out by hand for every repetition. The C-style `for` loop:
+
+```bash
+for ((i=0; i<=100; i++)); do
+  echo $i
+done
+```
+
+As pseudocode:
+```
+set i = 0
+while i <= 100:
+  print i
+  increase i by 1
+```
+
+Walking through it: `i=0` prints `0`, `i=1` prints `1`, and so on up through `i=100` printing `100` — the loop stops the moment `i<=100` is no longer true.
+
+### Redirections
+By default, a command's normal output goes to the screen as **standard output** (file descriptor `1`), and its error messages go to the screen too, but on a separate stream called **standard error** (file descriptor `2`). Redirection sends either of these to a file instead of the screen:
+
+| Symbol | Meaning |
+|---|---|
+| `>` | Send standard output to a file, overwriting it |
+| `>>` | Same as `>`, but append instead of overwrite |
+| `1>` | Same as plain `>` — the `1` just spells out "standard output" |
+| `2>` | Send standard error to a file |
+| `&>` | Send both standard output and standard error to the same file |
+
+```bash
+ls -l > output.log               # same as: ls -l 1> output.log
+ls -ldfjdsUHFRDF 2> output.log   # a bad command — its error message lands in output.log
+ls -l &> output.log               # both output and any error go to output.log
+```
+
+A real script usually logs somewhere persistent rather than the screen, e.g. `/var/log/shell-practice/13-logs.sh.log`.
+
+### Pipes
+A pipe (`|`) feeds one command's standard output straight into the next command's standard input, with no file in between:
+```bash
+command-1 | command-2
+```
+
+### Error handling: known vs unknown errors
+- **Known errors** — ones you can anticipate (a missing file, a failed install, bad input) and can explicitly check for, usually via `$?` right after the command that might fail.
+- **Unknown errors** — ones nobody anticipated and no check was written for; a script can only catch what it was told to look for.
+
+Since shell doesn't stop on its own when a command fails (see **Exit status** above), handling known errors means actively checking for them — the shell won't do it for you.
+
+### Programming vs scripting
+Both are forms of coding, but with different scope: **programming** means building full applications, typically the work of developers; **scripting** means automating tasks and gluing systems together, common in DevOps work (and in database work, e.g. PL/SQL). Shell scripting sits on the scripting side of that line.
+
 ## Common problems and how to solve them
 - **`fatal: unable to auto-detect email address` / "Please tell me who you are"** — Git refuses to commit until it knows who's committing. Fix: run `git config --global user.email "..."` and `git config --global user.name "..."` once per machine (drop `--global` to set it for just one repository).
 - **Git push asks for authentication** — on a fresh setup, pushing to GitHub for the first time prompts for a login, usually handled by signing in through the browser when prompted.
@@ -231,6 +301,8 @@ The actual `if`/`elif`/`else` bash syntax comes next — this stage is about get
 - **A script keeps going after a command fails** — shell doesn't stop on failure by itself; check `$?` right after any command whose success actually matters.
 - **An exported variable "disappears"** — `export` only lasts for the current session. For something that needs to survive a logout, put it in `~/.bashrc` (one user) or a script under `/etc/profile.d/` (all users).
 - **Treating a shell variable like a typed value** — e.g. assuming a variable "is a number" and relying on that for arithmetic or comparisons. Shell stores it as a string regardless; validate or convert it explicitly instead of assuming.
+- **An error message didn't end up in the log file** — only standard output was redirected (`>` or `1>`), not standard error. Use `2>` for errors specifically, or `&>` to capture both.
+- **A loop runs one time more or fewer than expected** — check the loop's condition (`<` vs `<=`) and starting value carefully; off-by-one is the most common loop mistake.
 
 ## Key takeaways
 - Manual deployment has five recurring problems: no documentation of the steps, slow repetition, human error, no way to restore a previous state, and no accountability for who changed what.
@@ -243,5 +315,8 @@ The actual `if`/`elif`/`else` bash syntax comes next — this stage is about get
 - `export` makes a variable available for the session and to sub-processes; `~/.bashrc` persists it per-user, `/etc/profile.d/*.sh` persists it for everyone; `env` lists them all.
 - Shell has no real data types — everything is a string by default, which puts the burden of correctness on the script writer rather than a type system.
 - Work out logic as an algorithm/pseudocode before writing real syntax, then express it as conditions (`if` / `else if` / `else`) once the steps are clear.
+- Functions bundle repeated code into one reusable, single-purpose block — fewer lines with more clarity beats more lines with less clarity.
+- Loops (`for ((i=...; ...; i++))`) repeat work without repeating code; redirection (`>`, `>>`, `1>`, `2>`, `&>`) sends a command's output and/or errors to a file instead of the screen; a pipe (`|`) feeds one command's output directly into the next.
+- Known errors can be checked for explicitly (usually via `$?`); unknown errors can't be handled because nothing was written to look for them.
 
-See also: [06-linux-admin.md](06-linux-admin.md)
+See also: [06-linux-admin.md](06-linux-admin.md), [14-aws-cli.md](14-aws-cli.md)
